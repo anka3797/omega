@@ -33,6 +33,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  date_picker_timeline: ^1.2.3
+  google_fonts: ^2.0.0
+  search_choices: ^2.0.3
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
