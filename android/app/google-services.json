@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "631391635342",
+    "project_id": "omega-c6269",
+    "storage_bucket": "omega-c6269.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:631391635342:android:977f4d765e6e16c6f306df",
+        "android_client_info": {
+          "package_name": "com.replikantas.omega"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "631391635342-a53p3uqe8g5abvqobb59m5dnlkjmi9pn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjC2K6HdmPEMOQkbO9rZ9f8fak9CSdCpU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "631391635342-a53p3uqe8g5abvqobb59m5dnlkjmi9pn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
