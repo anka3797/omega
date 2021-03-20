@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:date_picker_timeline/date_picker_timeline.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:omega/dialogs/createTask.dart';
 import 'package:omega/views.dart/createTask.dart';
 
 class Dashboard extends StatefulWidget {
@@ -116,8 +117,11 @@ class _DashboardState extends State<Dashboard> {
         backgroundColor: Colors.black,
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) => CreateTask()));
+            showDialog(
+                context: context,
+                builder: (_) {
+                  return CreateTaskDialog();
+                });
           },
         ),
         body: SafeArea(
