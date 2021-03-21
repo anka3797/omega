@@ -9,6 +9,7 @@ import 'package:omega/models/project.dart';
 import 'package:omega/services/firebaseServices.dart';
 import 'package:omega/style/theme.dart' as Style;
 import 'package:expandable_text/expandable_text.dart';
+import 'package:omega/views.dart/barChartScreen.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -254,6 +255,60 @@ class _DashboardState extends State<Dashboard> {
         ));
   }
 
+  Widget floatingMenu() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        margin: EdgeInsets.symmetric(horizontal: 50, vertical: 50),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              width: MediaQuery.of(context).size.width,
+              height: 60,
+              decoration:
+                  BoxDecoration(color: Colors.grey[500].withOpacity(0.5)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  IconButton(icon: Icon(Icons.pie_chart), onPressed: () {}),
+                  ClipOval(
+                    child: Material(
+                      color: Style.Colors.secondColor,
+                      child: InkWell(
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Icon(
+                            Icons.add,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onTap: () {},
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                      icon: Icon(Icons.stacked_bar_chart),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => BarChartScreen()),
+                        );
+                      }),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     tasksStream = FirebaseFirestore.instance
@@ -309,6 +364,7 @@ class _DashboardState extends State<Dashboard> {
             children: <Widget>[
               tasksList(),
               datePickerWidget(),
+              floatingMenu(),
             ],
           ),
         ));
