@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:omega/models/project.dart';
 import 'package:omega/services/firebaseServices.dart';
 import 'package:omega/style/theme.dart' as Style;
+import 'package:expandable_text/expandable_text.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -131,30 +132,55 @@ class _DashboardState extends State<Dashboard> {
     return StreamBuilder(
         stream: tasksStream,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            //snp.indexWhere((id) => id == selectedDate);
-            //print(Map.from(snapshot.data.docs[1].data()));
-            /* var mp = snapshot.data.docs
+          if (snapshot.connectionState == ConnectionState.active) {
+            if (snapshot.hasData && snapshot.data.docs.isNotEmpty) {
+              //snp.indexWhere((id) => id == selectedDate);
+              //print(Map.from(snapshot.data.docs[1].data()));
+              /* var mp = snapshot.data.docs
                 .asMap()
                 .map((k, v) => MapEntry(k, v))
                 .values
                 .toList();*/
-            List<QueryDocumentSnapshot> documentByDate = snapshot.data.docs
-                .where((doc) => doc.id == selectedDate)
-                .toList();
-            print(documentByDate[0].data());
-            return Expanded(
-              child: ListView.builder(
-                itemCount: documentByDate[0].data().entries.length,
-                itemBuilder: (context, index) {
-                  //return Text(documentByDate[0].data().values.elementAt(index));
-                  return taskCard(
-                      documentByDate[0].data().values.elementAt(index));
-                },
-              ),
-            );
+              List<QueryDocumentSnapshot> documentByDate = snapshot.data.docs
+                  .where((doc) => doc.id == selectedDate)
+                  .toList();
+              //print(documentByDate[0].data());
+              if (documentByDate.isNotEmpty) {
+                return ListView.builder(
+                  padding: EdgeInsets.only(top: 170),
+                  itemCount: documentByDate[0].data().entries.length,
+                  itemBuilder: (context, index) {
+                    return taskCard(
+                        documentByDate[0].data().values.elementAt(index));
+                  },
+                );
+              } else {
+                return Center(
+                  child: Text(
+                    'No Tasks Found',
+                    style: GoogleFonts.sourceSansPro(
+                        textStyle: TextStyle(color: Style.Colors.textColor),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600),
+                  ),
+                );
+              }
+            } else {
+              return Center(
+                child: Text(
+                  'No Tasks Found',
+                  style: GoogleFonts.sourceSansPro(
+                      textStyle: TextStyle(color: Style.Colors.textColor),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600),
+                ),
+              );
+            }
           } else {
-            return Container();
+            return Center(
+                child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        Style.Colors.titleColor)));
           }
         });
   }
@@ -179,10 +205,14 @@ class _DashboardState extends State<Dashboard> {
                   fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 10),
-            Text(
+            ExpandableText(
               task['description'].toString(),
+              maxLines: 2,
+              expandText: 'More',
+              collapseText: ' Less',
+              linkColor: Color(int.parse(task['color'])),
               style: GoogleFonts.sourceSansPro(
-                  textStyle: TextStyle(color: Style.Colors.textColor),
+                  textStyle: TextStyle(color: Style.Colors.mainColor),
                   fontSize: 15,
                   fontWeight: FontWeight.w500),
             ),
@@ -213,7 +243,7 @@ class _DashboardState extends State<Dashboard> {
                   "min",
                   style: GoogleFonts.sourceSansPro(
                     textStyle: TextStyle(
-                        color: Style.Colors.textColor,
+                        color: Style.Colors.mainColor,
                         fontSize: 15,
                         fontWeight: FontWeight.w500),
                   ),
@@ -275,10 +305,10 @@ class _DashboardState extends State<Dashboard> {
         ),
         body: SafeArea(
           bottom: false,
-          child: Column(
+          child: Stack(
             children: <Widget>[
-              datePickerWidget(),
               tasksList(),
+              datePickerWidget(),
             ],
           ),
         ));

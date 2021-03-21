@@ -267,7 +267,12 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
     for (int i = 0; i < widget.projectList.length; i++) {
       items.add(
         DropdownMenuItem(
-          child: Text(widget.projectList[i].name),
+          child: Text(
+            widget.projectList[i].name,
+            style: GoogleFonts.sourceSansPro(
+                textStyle: TextStyle(color: Style.Colors.titleColor),
+                fontWeight: FontWeight.w500),
+          ),
           value: widget.projectList[i].name,
         ),
       );
