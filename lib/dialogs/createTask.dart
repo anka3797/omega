@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:omega/models/project.dart';
+import 'package:omega/services/firebaseServices.dart';
 import 'package:omega/style/theme.dart' as Style;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:search_choices/search_choices.dart';
 
 class CreateTaskDialog extends StatefulWidget {
+  final List<Project> projectList;
+  final String date;
+
+  const CreateTaskDialog({Key key, this.projectList, this.date})
+      : super(key: key);
   @override
   _CreateTaskDialogState createState() => _CreateTaskDialogState();
 }
 
 class _CreateTaskDialogState extends State<CreateTaskDialog> {
   String selectedProject;
-  List<DropdownMenuItem<String>> items = [
-    DropdownMenuItem(
-      child: Text("one"),
-      value: "one",
-    ),
-    DropdownMenuItem(child: Text("two"), value: "two three"),
-  ];
+  List<DropdownMenuItem<String>> items = [];
   TextEditingController descriptionController = TextEditingController();
   int _minutes = 15;
   List<int> colors = [
@@ -28,6 +29,7 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
     0xff6366f3,
   ];
   int selectedColor = 0xff6ecdb7;
+  FirebaseServices firebaseServices = FirebaseServices();
 
   Widget projectSelector() {
     return Padding(
@@ -72,7 +74,7 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
         },
         dialogBox: false,
         isExpanded: true,
-        menuConstraints: BoxConstraints.tight(Size.fromHeight(250)),
+        menuConstraints: BoxConstraints.tight(Size.fromHeight(350)),
       ),
     );
   }
@@ -214,9 +216,32 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
                 ),
                 SizedBox(width: 10),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    selectedProject == null ||
+                            descriptionController.text == '' ||
+                            _minutes == 0
+                        ? DoNothingAction()
+                        : firebaseServices
+                            .registerTask(
+                                selectedProject,
+                                selectedColor,
+                                _minutes,
+                                widget.date,
+                                descriptionController.text)
+                            .then((msg) {
+                            if (msg == 'success') {
+                              Navigator.of(context).pop();
+                            } else {
+                              print(msg);
+                            }
+                          });
+                  },
                   style: ElevatedButton.styleFrom(
-                    primary: Style.Colors.styleColor,
+                    primary: selectedProject == null ||
+                            descriptionController.text == '' ||
+                            _minutes == 0
+                        ? Style.Colors.textColor
+                        : Style.Colors.styleColor,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5)),
                     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -235,6 +260,19 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
         )
       ],
     );
+  }
+
+  @override
+  void initState() {
+    for (int i = 0; i < widget.projectList.length; i++) {
+      items.add(
+        DropdownMenuItem(
+          child: Text(widget.projectList[i].name),
+          value: widget.projectList[i].name,
+        ),
+      );
+    }
+    super.initState();
   }
 
   @override

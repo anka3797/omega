@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:date_picker_timeline/date_picker_timeline.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:omega/dialogs/createTask.dart';
-import 'package:omega/views.dart/createTask.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:omega/models/project.dart';
+import 'package:omega/services/firebaseServices.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -14,6 +16,10 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   DatePickerController _controller = DatePickerController();
   int years = DateTime.now().year;
+  List<QueryDocumentSnapshot> projects = [];
+  FirebaseServices firebaseServices = FirebaseServices();
+  List<Project> projectList = [];
+  DateTime _selectedDate = DateTime.now();
 
   Widget datePickerWidget() {
     return Stack(
@@ -91,7 +97,7 @@ class _DashboardState extends State<Dashboard> {
             DatePicker(
               DateTime.utc(years),
               controller: _controller,
-              initialSelectedDate: DateTime.now(),
+              initialSelectedDate: _selectedDate,
               height: 90,
               selectionColor: Colors.white30,
               selectedTextColor: Colors.black,
@@ -104,6 +110,9 @@ class _DashboardState extends State<Dashboard> {
               monthTextStyle: GoogleFonts.sourceSansPro(
                   textStyle: TextStyle(color: Colors.grey),
                   fontWeight: FontWeight.w600),
+              onDateChange: (date) {
+                _selectedDate = date;
+              },
             ),
           ],
         ),
@@ -117,11 +126,33 @@ class _DashboardState extends State<Dashboard> {
         backgroundColor: Colors.black,
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            showDialog(
-                context: context,
-                builder: (_) {
-                  return CreateTaskDialog();
-                });
+            String date = DateTime(
+                    _selectedDate.year, _selectedDate.month, _selectedDate.day)
+                .toString()
+                .substring(0, 10);
+            print(date);
+            if (projectList.isEmpty) {
+              firebaseServices.getProjects().then((list) {
+                projectList = list;
+                showDialog(
+                    context: context,
+                    builder: (_) {
+                      return CreateTaskDialog(
+                        projectList: list,
+                        date: date,
+                      );
+                    });
+              });
+            } else {
+              showDialog(
+                  context: context,
+                  builder: (_) {
+                    return CreateTaskDialog(
+                      projectList: projectList,
+                      date: date,
+                    );
+                  });
+            }
           },
         ),
         body: SafeArea(
