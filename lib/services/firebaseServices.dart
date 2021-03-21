@@ -15,9 +15,10 @@ class FirebaseServices {
     return projectList;
   }
 
-  Future registerTask(String projectName, int color, int time, String date,
+  Future registerTask(String projectName, String color, int time, String date,
       String description) async {
     bool exists = false;
+    int index = 1;
     try {
       await FirebaseFirestore.instance
           .collection("users")
@@ -27,6 +28,7 @@ class FirebaseServices {
           .get()
           .then((onexist) {
         if (onexist.exists) {
+          index = onexist.data().entries.length + 1;
           exists = true;
         } else {
           exists = false;
@@ -39,7 +41,7 @@ class FirebaseServices {
             .collection("dates")
             .doc(date)
             .update({
-          "test": {
+          "$index": {
             "name": projectName,
             "time": time,
             "description": description,
@@ -53,7 +55,7 @@ class FirebaseServices {
             .collection("dates")
             .doc(date)
             .set({
-          "test": {
+          "$index": {
             "name": projectName,
             "time": time,
             "description": description,

@@ -224,7 +224,7 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
                         : firebaseServices
                             .registerTask(
                                 selectedProject,
-                                selectedColor,
+                                selectedColor.toString(),
                                 _minutes,
                                 widget.date,
                                 descriptionController.text)
