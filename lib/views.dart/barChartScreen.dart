@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:omega/dialogs/datePicker.dart';
+import 'package:omega/models/task.dart';
 import 'package:omega/style/theme.dart' as Style;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
 class BarChartScreen extends StatefulWidget {
   @override
@@ -10,6 +13,40 @@ class BarChartScreen extends StatefulWidget {
 
 class _BarChartScreenState extends State<BarChartScreen> {
   Map<String, String> dateRange = {};
+  ZoomPanBehavior _zoomPanBehavior;
+
+  List<List<Task>> data = [
+    [
+      Task(date: "2021", time: 120, color: Colors.red, name: "Customer 1"),
+      Task(date: "2020", time: 160, color: Colors.red, name: "Customer 1"),
+    ],
+    [
+      Task(date: "2021", time: 80, color: Colors.blue, name: "Customer 2"),
+      Task(date: "2020", time: 20, color: Colors.teal, name: "Customer 2"),
+    ],
+    [
+      Task(date: "2021", time: 40, color: Colors.orange, name: "Customer 3"),
+    ],
+    [
+      Task(date: "2022", time: 40, color: Colors.orange, name: "Customer 3"),
+    ],
+    [
+      Task(date: "2024", time: 40, color: Colors.orange, name: "Customer 3"),
+    ],
+    [
+      Task(date: "2026", time: 80, color: Colors.blue, name: "Customer 2"),
+      Task(date: "2026", time: 20, color: Colors.teal, name: "Customer 2"),
+    ],
+    [
+      Task(date: "2027", time: 40, color: Colors.orange, name: "Customer 3"),
+    ],
+    [
+      Task(date: "2028", time: 40, color: Colors.orange, name: "Customer 3"),
+    ],
+    [
+      Task(date: "2029", time: 40, color: Colors.orange, name: "Customer 3"),
+    ],
+  ];
 
   Widget selectDateWidget() {
     return Container(
@@ -37,6 +74,47 @@ class _BarChartScreenState extends State<BarChartScreen> {
         ],
       ),
     );
+  }
+
+  List keksas() {
+    List<ChartSeries<Task, String>> list = [];
+    for (int i = 0; i < data.length; i++) {
+      list.add(StackedColumnSeries<Task, String>(
+        dataSource: data[i],
+        xValueMapper: (Task sales, _) => sales.date,
+        yValueMapper: (Task sales, _) => sales.time,
+        pointColorMapper: (Task sales, _) => sales.color,
+        name: data[i][0].name,
+        groupName: data[i][0].name,
+        // Enable data label
+        dataLabelSettings: DataLabelSettings(isVisible: true),
+      ));
+    }
+
+    return list;
+  }
+
+  Widget tasksChart() {
+    return SfCartesianChart(
+        primaryXAxis: CategoryAxis(),
+        // Chart title
+        title: ChartTitle(text: 'Half yearly sales analysis'),
+        // Enable legend
+        legend: Legend(isVisible: true),
+        // Enable tooltip
+        tooltipBehavior: TooltipBehavior(enable: true),
+        zoomPanBehavior: _zoomPanBehavior,
+        series: keksas());
+  }
+
+  @override
+  void initState() {
+    _zoomPanBehavior = ZoomPanBehavior(
+      enablePinching: true,
+      zoomMode: ZoomMode.xy,
+      enablePanning: true,
+    );
+    super.initState();
   }
 
   @override
@@ -74,9 +152,7 @@ class _BarChartScreenState extends State<BarChartScreen> {
       ),
       body: SingleChildScrollView(
         child: Column(
-          children: <Widget>[
-            selectDateWidget(),
-          ],
+          children: <Widget>[selectDateWidget(), tasksChart()],
         ),
       ),
     );
