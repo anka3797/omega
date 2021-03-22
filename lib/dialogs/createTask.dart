@@ -93,11 +93,11 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
             child: Slider(
               value: _minutes.toDouble(),
               min: 0,
-              max: 55,
-              divisions: 11,
+              max: 480,
+              divisions: 32,
               activeColor: Style.Colors.textColor,
               inactiveColor: Color(0xff313033),
-              label: _minutes.toString(),
+              label: minutesToHours(),
               onChanged: (double values) {
                 setState(() {
                   _minutes = values.round();
@@ -107,7 +107,9 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
           ),
         ),
         Text(
-          "$_minutes min",
+          _minutes ~/ 60 != 0
+              ? "${minutesToHours()} hrs"
+              : "${minutesToHours()} min",
           style: GoogleFonts.sourceSansPro(
               textStyle: TextStyle(color: Colors.grey),
               fontWeight: FontWeight.w600),
@@ -260,6 +262,16 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
         )
       ],
     );
+  }
+
+  String minutesToHours() {
+    if (_minutes < 60) {
+      return _minutes.toString();
+    } else {
+      String kk =
+          ((_minutes ~/ 60).toString() + ':' + (_minutes % 60).toString());
+      return kk;
+    }
   }
 
   @override

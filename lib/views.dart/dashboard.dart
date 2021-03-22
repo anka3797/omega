@@ -25,6 +25,7 @@ class _DashboardState extends State<Dashboard> {
   DateTime _selectedDate = DateTime.now();
   Stream tasksStream;
   String selectedDate;
+  List<QueryDocumentSnapshot> snapshotDocuments = [];
 
   Widget datePickerWidget() {
     return Stack(
@@ -142,13 +143,14 @@ class _DashboardState extends State<Dashboard> {
                 .map((k, v) => MapEntry(k, v))
                 .values
                 .toList();*/
+              snapshotDocuments = snapshot.data.docs;
               List<QueryDocumentSnapshot> documentByDate = snapshot.data.docs
                   .where((doc) => doc.id == selectedDate)
                   .toList();
               //print(documentByDate[0].data());
               if (documentByDate.isNotEmpty) {
                 return ListView.builder(
-                  padding: EdgeInsets.only(top: 170),
+                  padding: EdgeInsets.only(top: 170, bottom: 90),
                   itemCount: documentByDate[0].data().entries.length,
                   itemBuilder: (context, index) {
                     return taskCard(
@@ -233,7 +235,7 @@ class _DashboardState extends State<Dashboard> {
             Row(
               children: <Widget>[
                 Text(
-                  task['time'].toString(),
+                  minsToHours(task['time']),
                   style: GoogleFonts.sourceSansPro(
                       textStyle: TextStyle(color: Style.Colors.titleColor),
                       fontSize: 15,
@@ -241,7 +243,7 @@ class _DashboardState extends State<Dashboard> {
                 ),
                 SizedBox(width: 5),
                 Text(
-                  "min",
+                  task['time'] ~/ 60 != 0 ? "h" : "min",
                   style: GoogleFonts.sourceSansPro(
                     textStyle: TextStyle(
                         color: Style.Colors.mainColor,
@@ -260,7 +262,7 @@ class _DashboardState extends State<Dashboard> {
       alignment: Alignment.bottomCenter,
       child: Container(
         clipBehavior: Clip.antiAlias,
-        margin: EdgeInsets.symmetric(horizontal: 50, vertical: 50),
+        margin: EdgeInsets.symmetric(horizontal: 50, vertical: 30),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(25)),
         child: ClipRect(
           child: BackdropFilter(
@@ -287,7 +289,35 @@ class _DashboardState extends State<Dashboard> {
                             color: Colors.white,
                           ),
                         ),
-                        onTap: () {},
+                        onTap: () {
+                          String date = DateTime(_selectedDate.year,
+                                  _selectedDate.month, _selectedDate.day)
+                              .toString()
+                              .substring(0, 10);
+                          print(date);
+                          if (projectList.isEmpty) {
+                            firebaseServices.getProjects().then((list) {
+                              projectList = list;
+                              showDialog(
+                                  context: context,
+                                  builder: (_) {
+                                    return CreateTaskDialog(
+                                      projectList: list,
+                                      date: date,
+                                    );
+                                  });
+                            });
+                          } else {
+                            showDialog(
+                                context: context,
+                                builder: (_) {
+                                  return CreateTaskDialog(
+                                    projectList: projectList,
+                                    date: date,
+                                  );
+                                });
+                          }
+                        },
                       ),
                     ),
                   ),
@@ -297,7 +327,8 @@ class _DashboardState extends State<Dashboard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => BarChartScreen()),
+                              builder: (context) => BarChartScreen(
+                                  documentsList: snapshotDocuments)),
                         );
                       }),
                 ],
@@ -307,6 +338,18 @@ class _DashboardState extends State<Dashboard> {
         ),
       ),
     );
+  }
+
+  String minsToHours(int time) {
+    if (time < 60) {
+      return (time.toString() + 'min');
+    } else {
+      if (time % 60 == 0) {
+        return ((time ~/ 60).toString() + ':00');
+      } else {
+        return ((time ~/ 60).toString() + ':' + (time % 60).toString());
+      }
+    }
   }
 
   @override
@@ -327,37 +370,6 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.black,
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            String date = DateTime(
-                    _selectedDate.year, _selectedDate.month, _selectedDate.day)
-                .toString()
-                .substring(0, 10);
-            print(date);
-            if (projectList.isEmpty) {
-              firebaseServices.getProjects().then((list) {
-                projectList = list;
-                showDialog(
-                    context: context,
-                    builder: (_) {
-                      return CreateTaskDialog(
-                        projectList: list,
-                        date: date,
-                      );
-                    });
-              });
-            } else {
-              showDialog(
-                  context: context,
-                  builder: (_) {
-                    return CreateTaskDialog(
-                      projectList: projectList,
-                      date: date,
-                    );
-                  });
-            }
-          },
-        ),
         body: SafeArea(
           bottom: false,
           child: Stack(
