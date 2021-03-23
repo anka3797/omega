@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:omega/dialogs/datePicker.dart';
+import 'package:omega/functions.dart';
 import 'package:omega/models/task.dart';
 import 'package:omega/style/theme.dart' as Style;
 import 'package:google_fonts/google_fonts.dart';
@@ -20,11 +21,11 @@ class BarChartScreen extends StatefulWidget {
 class _BarChartScreenState extends State<BarChartScreen> {
   Map<String, String> dateRange = {};
   TooltipBehavior _tooltipBehavior;
-  List<QueryDocumentSnapshot> documentsList;
   List<List<Task>> splineChartData = [];
   List<Task> chartData = [
     Task(name: 'No Data', time: 1),
   ];
+  CalculationFunctions functions = CalculationFunctions();
 
   Widget selectDateWidget() {
     return Container(
@@ -90,10 +91,9 @@ class _BarChartScreenState extends State<BarChartScreen> {
     return Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
         child: FutureBuilder(
-          future: calculateTotalTime(),
+          future: functions.calculateTotalTime(chartData),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
-              //print("Work days: ${getDifferenceWithoutWeekends()}");
               return Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -102,11 +102,16 @@ class _BarChartScreenState extends State<BarChartScreen> {
                     radius: 60.0,
                     lineWidth: 10.0,
                     animation: true,
-                    percent: snapshot.data[1] / getTotalWorkMinutes() > 1.0
+                    percent: snapshot.data[1] /
+                                functions.getTotalWorkMinutes(dateRange) >
+                            1.0
                         ? 1.0
-                        : snapshot.data[1] / getTotalWorkMinutes(),
+                        : snapshot.data[1] /
+                            functions.getTotalWorkMinutes(dateRange),
                     center: new Text(
-                      (snapshot.data[1] / getTotalWorkMinutes() * 100)
+                      (snapshot.data[1] /
+                                  functions.getTotalWorkMinutes(dateRange) *
+                                  100)
                               .toStringAsFixed(1) +
                           '%',
                       style: GoogleFonts.sourceSansPro(
@@ -170,144 +175,6 @@ class _BarChartScreenState extends State<BarChartScreen> {
     return seriesList;
   }
 
-  Future<List<dynamic>> calculateTotalTime() async {
-    int totalTime = 0;
-    for (int i = 0; i < chartData.length; i++) {
-      totalTime = chartData[i].time + totalTime;
-    }
-    if (totalTime < 60) {
-      return [
-        (totalTime.toString() + 'mins'),
-        totalTime,
-      ];
-    } else {
-      return [
-        ((totalTime ~/ 60).toString() +
-            ' h ' +
-            (totalTime % 60).toString() +
-            ' min'),
-        totalTime,
-      ];
-    }
-  }
-
-  int getTotalWorkMinutes() {
-    return getDifferenceWithoutWeekends() * 480;
-  }
-
-  int getDifferenceWithoutWeekends() {
-    int nbDays = 0;
-    DateTime currentDay = DateFormat('yyyy-MM-dd').parse(dateRange['start']);
-    //print(currentDay);
-    while (
-        currentDay.isBefore(DateFormat('yyyy-MM-dd').parse(dateRange['end'])) ||
-            currentDay.isAtSameMomentAs(
-                DateFormat('yyyy-MM-dd').parse(dateRange['end']))) {
-      currentDay = currentDay.add(Duration(days: 1));
-      if (currentDay.weekday != DateTime.saturday &&
-          currentDay.weekday != DateTime.sunday) {
-        nbDays += 1;
-      }
-    }
-    return nbDays;
-  }
-
-  void getDaysInBeteween() {
-    List<Task> daysList = [];
-    DateTime startDate = DateFormat('yyyy-MM-dd').parse(dateRange['start']);
-    DateTime endDate = DateFormat('yyyy-MM-dd').parse(dateRange['end']);
-    for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
-      daysList.add(Task.fromMap({
-        'name': null,
-        'date': DateTime(startDate.year, startDate.month, startDate.day + i)
-            .toString()
-            .substring(0, 10),
-        'time': null,
-      }));
-    }
-    splineChartData.add(daysList);
-  }
-
-  void prepareChartData() {
-    splineChartData.clear();
-    chartData = [
-      Task(name: 'No Data', time: 1),
-    ];
-    getDaysInBeteween();
-    int startDate = int.parse(dateRange['start'].replaceAll(RegExp('-'), ''));
-    int endDate = int.parse(dateRange['end'].replaceAll(RegExp('-'), ''));
-    List<Task> splineList = [];
-    List<String> namesList = [];
-    Map<String, Map<String, dynamic>> overviewMap = {};
-    List<Task> tasksList = [];
-    widget.documentsList.forEach((element) {
-      int documentDate = int.parse(element.id.replaceAll(RegExp('-'), ''));
-      // filter loop of calendar days
-      if (documentDate >= startDate && documentDate <= endDate) {
-        // loop of one day tasks
-        for (int i = 0; i < element.data().values.length; i++) {
-          overviewMap[element.data().values.elementAt(i)['name']] = {
-            'time':
-                overviewMap[element.data().values.elementAt(i)['name']] == null
-                    ? element.data().values.elementAt(i)['time']
-                    : overviewMap[element.data().values.elementAt(i)['name']]
-                            ['time'] +
-                        element.data().values.elementAt(i)['time'],
-            'name': element.data().values.elementAt(i)['name'],
-            'date': element.id,
-          };
-          namesList.contains(element.data().values.elementAt(i)['name'])
-              ? DoNothingAction()
-              : namesList.add(element.data().values.elementAt(i)['name']);
-          splineList.add(Task.fromMap({
-            'name': element.data().values.elementAt(i)['name'],
-            'date': element.id,
-            'time': element.data().values.elementAt(i)['time'],
-          }));
-        }
-      } else {}
-    });
-
-    if (overviewMap.isNotEmpty) {
-      overviewMap.forEach((key, value) {
-        tasksList.add(Task.fromMap(value));
-      });
-      setState(() {
-        chartData = tasksList;
-      });
-    } else {
-      print("Is empty");
-    }
-    if (splineList.isNotEmpty) {
-      namesList.forEach((name) {
-        splineChartData
-            .add(splineList.where((item) => item.name == name).toList());
-      });
-
-      /* splineChartData.forEach((k) {
-        print("[");
-        k.forEach((kk) {
-          print("${kk.name}    ${kk.date}: ${kk.time}");
-        });
-        print("]");
-      });*/
-      //print(splineChartData);
-    }
-  }
-
-  /* void initTimeSheet() {
-    DateTime dateTime = DateTime.now();
-    dateRange['end'] = DateFormat('yyyy-MM-dd')
-        .format(dateTime.subtract(Duration(days: dateTime.weekday - 1)))
-        .toString();
-    dateRange['start'] = DateFormat('yyyy-MM-dd')
-        .format(dateTime
-            .subtract(Duration(days: DateTime.daysPerWeek - dateTime.weekday)))
-        .toString();
-    prepareChartData();
-    print(dateRange);
-  }*/
-
   void initTimeSheet() {
     DateTime dateTime = DateTime.now();
     dateRange['end'] = DateFormat('yyyy-MM-dd')
@@ -317,8 +184,17 @@ class _BarChartScreenState extends State<BarChartScreen> {
         .format(dateTime
             .subtract(Duration(days: DateTime.daysPerWeek - dateTime.weekday)))
         .toString();
-    prepareChartData();
-    //print(dateRange);
+    splineChartData.clear();
+    chartData = [
+      Task(name: 'No Data', time: 1),
+    ];
+
+    functions.prepareChartData(widget.documentsList, dateRange).then((map) {
+      splineChartData = map['splineChartData'];
+      chartData = map['barChartData'];
+      print(chartData);
+      setState(() {});
+    });
   }
 
   @override
@@ -354,7 +230,18 @@ class _BarChartScreenState extends State<BarChartScreen> {
                   }).then((date) {
                 setState(() {
                   dateRange = date;
-                  prepareChartData();
+                  splineChartData.clear();
+                  chartData = [
+                    Task(name: 'No Data', time: 1),
+                  ];
+                  functions
+                      .prepareChartData(widget.documentsList, dateRange)
+                      .then((map) {
+                    splineChartData = map['splineChartData'];
+                    chartData = map['barChartData'];
+                    print(chartData);
+                    setState(() {});
+                  });
                 });
               });
             },
