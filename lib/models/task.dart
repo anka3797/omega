@@ -8,7 +8,7 @@ class Task {
   Task.fromMap(Map<String, dynamic> map)
       : name = map['name'],
         time = map['time'],
-        timeUI = minutesToHours(map['time']),
+        timeUI = map['time'] == null ? null : minutesToHours(map['time']),
         date = map['date'];
 
   static String minutesToHours(int _minutes) {

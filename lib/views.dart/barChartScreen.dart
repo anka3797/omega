@@ -22,6 +22,9 @@ class _BarChartScreenState extends State<BarChartScreen> {
   TooltipBehavior _tooltipBehavior;
   List<QueryDocumentSnapshot> documentsList;
   List<List<Task>> splineChartData = [];
+  List<Task> chartData = [
+    Task(name: 'No Data', time: 1),
+  ];
 
   Widget selectDateWidget() {
     return Container(
@@ -51,10 +54,6 @@ class _BarChartScreenState extends State<BarChartScreen> {
       ),
     );
   }
-
-  List<Task> chartData = [
-    Task(name: 'No Data', time: 1),
-  ];
 
   Widget tasksChart() {
     return SfCircularChart(
@@ -94,7 +93,7 @@ class _BarChartScreenState extends State<BarChartScreen> {
           future: calculateTotalTime(),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data != null) {
-              print("Work days: ${getDifferenceWithoutWeekends()}");
+              //print("Work days: ${getDifferenceWithoutWeekends()}");
               return Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -137,33 +136,39 @@ class _BarChartScreenState extends State<BarChartScreen> {
   }
 
   Widget splineChart() {
-    return SfCartesianChart(series: <ChartSeries>[
-      LineSeries<Task, String>(
-        dataSource: splineChartData[0],
-        // Type of spline
-        dashArray: <double>[5, 5],
-        xValueMapper: (Task sales, _) => sales.date.toString(),
-        yValueMapper: (Task sales, _) => sales.time,
-      ),
-    ]);
+    return SfCartesianChart(
+        tooltipBehavior: TooltipBehavior(
+            enable: true, activationMode: ActivationMode.longPress),
+        /*trackballBehavior: TrackballBehavior(
+            enable: true,
+            activationMode: ActivationMode.singleTap,
+            lineType: TrackballLineType.vertical,
+            lineColor: Color(0xff6ecdb7)),*/
+        primaryXAxis: CategoryAxis(),
+        series: splineChartSeries());
   }
 
-  /*List<SplineSeries<Task, String>> splineChartSeries() {
-    List<SplineSeries<Task, String>> seriesList = [];
+  List<ChartSeries> splineChartSeries() {
+    List<StackedLineSeries<Task, String>> seriesList = [];
     splineChartData.forEach((group) {
       seriesList.add(
-        SplineSeries<Task, String>(
-          dataSource: group,
-          // Type of spline
-          splineType: SplineType.cardinal,
-          cardinalSplineTension: 0.9,
-          xValueMapper: (Task sales, _) => sales.date,
-          yValueMapper: (Task sales, _) => sales.time,
-        ),
+        StackedLineSeries<Task, String>(
+            isVisible: true,
+            markerSettings: MarkerSettings(isVisible: true),
+            enableTooltip: true,
+            dataSource: group,
+            // Type of spline
+            xValueMapper: (Task sales, _) => sales.date,
+            yValueMapper: (Task sales, _) => sales.time,
+            //dataLabelMapper: (Task data, _) => data.timeUI,
+            name: group[0].name,
+            emptyPointSettings: EmptyPointSettings(
+                // Mode of empty point
+                mode: EmptyPointMode.drop)),
       );
     });
     return seriesList;
-  }*/
+  }
 
   Future<List<dynamic>> calculateTotalTime() async {
     int totalTime = 0;
@@ -193,7 +198,7 @@ class _BarChartScreenState extends State<BarChartScreen> {
   int getDifferenceWithoutWeekends() {
     int nbDays = 0;
     DateTime currentDay = DateFormat('yyyy-MM-dd').parse(dateRange['start']);
-    print(currentDay);
+    //print(currentDay);
     while (
         currentDay.isBefore(DateFormat('yyyy-MM-dd').parse(dateRange['end'])) ||
             currentDay.isAtSameMomentAs(
@@ -207,7 +212,28 @@ class _BarChartScreenState extends State<BarChartScreen> {
     return nbDays;
   }
 
+  void getDaysInBeteween() {
+    List<Task> daysList = [];
+    DateTime startDate = DateFormat('yyyy-MM-dd').parse(dateRange['start']);
+    DateTime endDate = DateFormat('yyyy-MM-dd').parse(dateRange['end']);
+    for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
+      daysList.add(Task.fromMap({
+        'name': null,
+        'date': DateTime(startDate.year, startDate.month, startDate.day + i)
+            .toString()
+            .substring(0, 10),
+        'time': null,
+      }));
+    }
+    splineChartData.add(daysList);
+  }
+
   void prepareChartData() {
+    splineChartData.clear();
+    chartData = [
+      Task(name: 'No Data', time: 1),
+    ];
+    getDaysInBeteween();
     int startDate = int.parse(dateRange['start'].replaceAll(RegExp('-'), ''));
     int endDate = int.parse(dateRange['end'].replaceAll(RegExp('-'), ''));
     List<Task> splineList = [];
@@ -249,7 +275,6 @@ class _BarChartScreenState extends State<BarChartScreen> {
       setState(() {
         chartData = tasksList;
       });
-      print(namesList);
     } else {
       print("Is empty");
     }
@@ -258,12 +283,15 @@ class _BarChartScreenState extends State<BarChartScreen> {
         splineChartData
             .add(splineList.where((item) => item.name == name).toList());
       });
+
       /* splineChartData.forEach((k) {
+        print("[");
         k.forEach((kk) {
           print("${kk.name}    ${kk.date}: ${kk.time}");
         });
-      });
-      print(splineChartData);*/
+        print("]");
+      });*/
+      //print(splineChartData);
     }
   }
 
@@ -290,7 +318,7 @@ class _BarChartScreenState extends State<BarChartScreen> {
             .subtract(Duration(days: DateTime.daysPerWeek - dateTime.weekday)))
         .toString();
     prepareChartData();
-    print(dateRange);
+    //print(dateRange);
   }
 
   @override
