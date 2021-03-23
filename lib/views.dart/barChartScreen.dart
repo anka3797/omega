@@ -21,6 +21,7 @@ class _BarChartScreenState extends State<BarChartScreen> {
   Map<String, String> dateRange = {};
   TooltipBehavior _tooltipBehavior;
   List<QueryDocumentSnapshot> documentsList;
+  List<List<Task>> splineChartData = [];
 
   Widget selectDateWidget() {
     return Container(
@@ -135,6 +136,35 @@ class _BarChartScreenState extends State<BarChartScreen> {
         ));
   }
 
+  Widget splineChart() {
+    return SfCartesianChart(series: <ChartSeries>[
+      LineSeries<Task, String>(
+        dataSource: splineChartData[0],
+        // Type of spline
+        dashArray: <double>[5, 5],
+        xValueMapper: (Task sales, _) => sales.date.toString(),
+        yValueMapper: (Task sales, _) => sales.time,
+      ),
+    ]);
+  }
+
+  /*List<SplineSeries<Task, String>> splineChartSeries() {
+    List<SplineSeries<Task, String>> seriesList = [];
+    splineChartData.forEach((group) {
+      seriesList.add(
+        SplineSeries<Task, String>(
+          dataSource: group,
+          // Type of spline
+          splineType: SplineType.cardinal,
+          cardinalSplineTension: 0.9,
+          xValueMapper: (Task sales, _) => sales.date,
+          yValueMapper: (Task sales, _) => sales.time,
+        ),
+      );
+    });
+    return seriesList;
+  }*/
+
   Future<List<dynamic>> calculateTotalTime() async {
     int totalTime = 0;
     for (int i = 0; i < chartData.length; i++) {
@@ -177,9 +207,11 @@ class _BarChartScreenState extends State<BarChartScreen> {
     return nbDays;
   }
 
-  Future<List<Task>> prepareChartData() {
+  void prepareChartData() {
     int startDate = int.parse(dateRange['start'].replaceAll(RegExp('-'), ''));
     int endDate = int.parse(dateRange['end'].replaceAll(RegExp('-'), ''));
+    List<Task> splineList = [];
+    List<String> namesList = [];
     Map<String, Map<String, dynamic>> overviewMap = {};
     List<Task> tasksList = [];
     widget.documentsList.forEach((element) {
@@ -196,13 +228,20 @@ class _BarChartScreenState extends State<BarChartScreen> {
                             ['time'] +
                         element.data().values.elementAt(i)['time'],
             'name': element.data().values.elementAt(i)['name'],
+            'date': element.id,
           };
+          namesList.contains(element.data().values.elementAt(i)['name'])
+              ? DoNothingAction()
+              : namesList.add(element.data().values.elementAt(i)['name']);
+          splineList.add(Task.fromMap({
+            'name': element.data().values.elementAt(i)['name'],
+            'date': element.id,
+            'time': element.data().values.elementAt(i)['time'],
+          }));
         }
-
-        //print(element.data().values);
-        //print(element.id.replaceAll(RegExp('-'), ''));
       } else {}
     });
+
     if (overviewMap.isNotEmpty) {
       overviewMap.forEach((key, value) {
         tasksList.add(Task.fromMap(value));
@@ -210,9 +249,21 @@ class _BarChartScreenState extends State<BarChartScreen> {
       setState(() {
         chartData = tasksList;
       });
-      print(tasksList);
+      print(namesList);
     } else {
       print("Is empty");
+    }
+    if (splineList.isNotEmpty) {
+      namesList.forEach((name) {
+        splineChartData
+            .add(splineList.where((item) => item.name == name).toList());
+      });
+      /* splineChartData.forEach((k) {
+        k.forEach((kk) {
+          print("${kk.name}    ${kk.date}: ${kk.time}");
+        });
+      });
+      print(splineChartData);*/
     }
   }
 
@@ -289,6 +340,7 @@ class _BarChartScreenState extends State<BarChartScreen> {
             selectDateWidget(),
             tasksChart(),
             progressBar(),
+            splineChart(),
           ],
         ),
       ),
