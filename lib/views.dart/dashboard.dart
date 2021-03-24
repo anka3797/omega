@@ -136,18 +136,10 @@ class _DashboardState extends State<Dashboard> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.active) {
             if (snapshot.hasData && snapshot.data.docs.isNotEmpty) {
-              //snp.indexWhere((id) => id == selectedDate);
-              //print(Map.from(snapshot.data.docs[1].data()));
-              /* var mp = snapshot.data.docs
-                .asMap()
-                .map((k, v) => MapEntry(k, v))
-                .values
-                .toList();*/
               snapshotDocuments = snapshot.data.docs;
               List<QueryDocumentSnapshot> documentByDate = snapshot.data.docs
                   .where((doc) => doc.id == selectedDate)
                   .toList();
-              //print(documentByDate[0].data());
               if (documentByDate.isNotEmpty) {
                 return ListView.builder(
                   padding: EdgeInsets.only(top: 170, bottom: 90),
@@ -294,7 +286,7 @@ class _DashboardState extends State<Dashboard> {
                                   _selectedDate.month, _selectedDate.day)
                               .toString()
                               .substring(0, 10);
-                          print(date);
+                          //print(date);
                           if (projectList.isEmpty) {
                             firebaseServices.getProjects().then((list) {
                               projectList = list;

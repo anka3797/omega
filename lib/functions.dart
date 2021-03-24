@@ -63,6 +63,43 @@ class CalculationFunctions {
     return daysList;
   }
 
+  List<List<Task>> fillListsWithDays(
+      List<List<Task>> splineList, Map<String, String> dateRange) {
+    DateTime startDate = DateFormat('yyyy-MM-dd').parse(dateRange['start']);
+    DateTime endDate = DateFormat('yyyy-MM-dd').parse(dateRange['end']);
+    splineList.forEach(
+      (element) {
+        for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
+          String date =
+              DateTime(startDate.year, startDate.month, startDate.day + i)
+                  .toString()
+                  .substring(0, 10);
+          element.firstWhere((el) => el.date == date, orElse: () => null) ==
+                  null
+              ? element.add(
+                  Task.fromMap(
+                    {
+                      'name': element[0].name,
+                      'date': DateTime(startDate.year, startDate.month,
+                              startDate.day + i)
+                          .toString()
+                          .substring(0, 10),
+                      'time': null,
+                    },
+                  ),
+                )
+              : DoNothingAction();
+        }
+        element.sort((a, b) {
+          return DateFormat('yyyy-MM-dd')
+              .parse(a.date)
+              .compareTo(DateFormat('yyyy-MM-dd').parse(b.date));
+        });
+      },
+    );
+    return splineList;
+  }
+
   Future<Map<String, dynamic>> prepareChartData(
       List<QueryDocumentSnapshot> documentsList,
       Map<String, String> dateRange) async {
@@ -114,12 +151,13 @@ class CalculationFunctions {
       ];
     }
     if (splineList.isNotEmpty) {
-      splineChartData.add(getDaysInBeteween(dateRange));
+      //splineChartData.add(getDaysInBeteween(dateRange));
       namesList.forEach((name) {
         splineChartData
             .add(splineList.where((item) => item.name == name).toList());
       });
-      returnMap['splineChartData'] = splineChartData;
+      returnMap['splineChartData'] =
+          fillListsWithDays(splineChartData, dateRange);
     } else {
       returnMap['splineChartData'] = splineChartData;
     }

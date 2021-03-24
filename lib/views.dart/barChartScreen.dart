@@ -70,15 +70,14 @@ class _BarChartScreenState extends State<BarChartScreen> {
         PieSeries<Task, String>(
           enableTooltip: true,
           enableSmartLabels: true,
-
           dataSource: chartData,
-          // pointColorMapper: (Task data, _) => data.color,
           xValueMapper: (Task data, _) => data.name,
-          yValueMapper: (Task data, _) => data.time,
+          yValueMapper: (Task data, _) => data.time / 60,
           dataLabelMapper: (Task data, _) => data.timeUI,
           dataLabelSettings: DataLabelSettings(
             isVisible: true,
             labelPosition: ChartDataLabelPosition.inside,
+            useSeriesColor: true,
           ),
           radius: '100%',
           explode: true,
@@ -142,34 +141,34 @@ class _BarChartScreenState extends State<BarChartScreen> {
 
   Widget splineChart() {
     return SfCartesianChart(
+        margin: EdgeInsets.only(left: 20, right: 20, top: 20),
+        zoomPanBehavior: ZoomPanBehavior(
+          enablePinching: true,
+          zoomMode: ZoomMode.xy,
+          enablePanning: true,
+        ),
         tooltipBehavior: TooltipBehavior(
-            enable: true, activationMode: ActivationMode.longPress),
-        /*trackballBehavior: TrackballBehavior(
-            enable: true,
-            activationMode: ActivationMode.singleTap,
-            lineType: TrackballLineType.vertical,
-            lineColor: Color(0xff6ecdb7)),*/
-        primaryXAxis: CategoryAxis(),
+            enable: true, activationMode: ActivationMode.singleTap),
+        primaryXAxis: DateTimeAxis(enableAutoIntervalOnZooming: false),
         series: splineChartSeries());
   }
 
   List<ChartSeries> splineChartSeries() {
-    List<StackedLineSeries<Task, String>> seriesList = [];
+    List<StackedColumnSeries<Task, DateTime>> seriesList = [];
     splineChartData.forEach((group) {
       seriesList.add(
-        StackedLineSeries<Task, String>(
+        StackedColumnSeries<Task, DateTime>(
             isVisible: true,
-            markerSettings: MarkerSettings(isVisible: true),
             enableTooltip: true,
             dataSource: group,
-            // Type of spline
-            xValueMapper: (Task sales, _) => sales.date,
-            yValueMapper: (Task sales, _) => sales.time,
-            //dataLabelMapper: (Task data, _) => data.timeUI,
+            xValueMapper: (Task data, _) =>
+                DateFormat('yyyy-MM-dd').parse(data.date),
+            yValueMapper: (Task data, _) =>
+                data.time != null ? data.time / 60 : data.time,
+            dataLabelMapper: (Task data, _) => data.timeUI,
             name: group[0].name,
-            emptyPointSettings: EmptyPointSettings(
-                // Mode of empty point
-                mode: EmptyPointMode.drop)),
+            dataLabelSettings: DataLabelSettings(isVisible: true),
+            emptyPointSettings: EmptyPointSettings(mode: EmptyPointMode.drop)),
       );
     });
     return seriesList;
@@ -192,7 +191,6 @@ class _BarChartScreenState extends State<BarChartScreen> {
     functions.prepareChartData(widget.documentsList, dateRange).then((map) {
       splineChartData = map['splineChartData'];
       chartData = map['barChartData'];
-      print(chartData);
       setState(() {});
     });
   }
@@ -228,7 +226,9 @@ class _BarChartScreenState extends State<BarChartScreen> {
                   builder: (_) {
                     return DatePickerDialog();
                   }).then((date) {
-                setState(() {
+                if (date == null) {
+                  print("null");
+                } else {
                   dateRange = date;
                   splineChartData.clear();
                   chartData = [
@@ -239,10 +239,9 @@ class _BarChartScreenState extends State<BarChartScreen> {
                       .then((map) {
                     splineChartData = map['splineChartData'];
                     chartData = map['barChartData'];
-                    print(chartData);
                     setState(() {});
                   });
-                });
+                }
               });
             },
             icon: Icon(Icons.date_range_rounded),
@@ -256,6 +255,7 @@ class _BarChartScreenState extends State<BarChartScreen> {
             tasksChart(),
             progressBar(),
             splineChart(),
+            SizedBox(height: 40),
           ],
         ),
       ),

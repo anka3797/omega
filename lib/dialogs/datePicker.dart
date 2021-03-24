@@ -14,6 +14,7 @@ class _DatePickerDialogState extends State<DatePickerDialog> {
   DateRangePickerSelectionChangedArgs args =
       DateRangePickerSelectionChangedArgs(DateTime.now());
   Map<String, String> rangeMap = {};
+  bool isLoading = false;
   void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
     setState(() {
       if (args.value is PickerDateRange) {
@@ -22,7 +23,7 @@ class _DatePickerDialogState extends State<DatePickerDialog> {
         rangeMap['end'] = DateFormat('yyyy-MM-dd')
             .format(args.value.endDate ?? args.value.startDate)
             .toString();
-        print(rangeMap);
+        //print(rangeMap);
       } else if (args.value is DateTime) {
         return args.value;
       } else if (args.value is List<DateTime>) {
@@ -84,9 +85,13 @@ class _DatePickerDialogState extends State<DatePickerDialog> {
                 padding: EdgeInsets.only(right: 10, bottom: 10),
                 child: ElevatedButton(
                   onPressed: () {
+                    //print(rangeMap);
                     rangeMap.isEmpty
                         ? DoNothingAction()
-                        : Navigator.pop(context, rangeMap);
+                        : setState(() {
+                            isLoading = true;
+                            Navigator.pop(context, rangeMap);
+                          });
                   },
                   style: ElevatedButton.styleFrom(
                     primary: rangeMap.isEmpty
@@ -96,13 +101,18 @@ class _DatePickerDialogState extends State<DatePickerDialog> {
                         borderRadius: BorderRadius.circular(5)),
                     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                   ),
-                  child: Text(
-                    "Done",
-                    style: GoogleFonts.sourceSansPro(
-                        textStyle: TextStyle(color: Style.Colors.titleColor),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600),
-                  ),
+                  child: isLoading
+                      ? CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Style.Colors.titleColor))
+                      : Text(
+                          "Done",
+                          style: GoogleFonts.sourceSansPro(
+                              textStyle:
+                                  TextStyle(color: Style.Colors.titleColor),
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
             ),
