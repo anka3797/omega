@@ -348,7 +348,7 @@ class _DashboardState extends State<Dashboard> {
 
   String minsToHours(int time) {
     if (time < 60) {
-      return (time.toString() + 'min');
+      return (time.toString() /* + 'min'*/);
     } else {
       if (time % 60 == 0) {
         return ((time ~/ 60).toString() + ':00');
