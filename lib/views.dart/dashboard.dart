@@ -316,12 +316,26 @@ class _DashboardState extends State<Dashboard> {
                   IconButton(
                       icon: Icon(Icons.stacked_bar_chart),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => BarChartScreen(
-                                  documentsList: snapshotDocuments)),
-                        );
+                        if (projectList.isEmpty) {
+                          firebaseServices.getProjects().then((list) {
+                            projectList = list;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => BarChartScreen(
+                                      projectList: list,
+                                      documentsList: snapshotDocuments)),
+                            );
+                          });
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => BarChartScreen(
+                                    projectList: projectList,
+                                    documentsList: snapshotDocuments)),
+                          );
+                        }
                       }),
                 ],
               ),

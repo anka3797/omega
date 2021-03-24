@@ -47,22 +47,6 @@ class CalculationFunctions {
     return nbDays;
   }
 
-  List<Task> getDaysInBeteween(Map<String, String> dateRange) {
-    List<Task> daysList = [];
-    DateTime startDate = DateFormat('yyyy-MM-dd').parse(dateRange['start']);
-    DateTime endDate = DateFormat('yyyy-MM-dd').parse(dateRange['end']);
-    for (int i = 0; i <= endDate.difference(startDate).inDays; i++) {
-      daysList.add(Task.fromMap({
-        'name': null,
-        'date': DateTime(startDate.year, startDate.month, startDate.day + i)
-            .toString()
-            .substring(0, 10),
-        'time': null,
-      }));
-    }
-    return daysList;
-  }
-
   List<List<Task>> fillListsWithDays(
       List<List<Task>> splineList, Map<String, String> dateRange) {
     DateTime startDate = DateFormat('yyyy-MM-dd').parse(dateRange['start']);
@@ -85,6 +69,7 @@ class CalculationFunctions {
                           .toString()
                           .substring(0, 10),
                       'time': null,
+                      'projectId': element[0].projectId
                     },
                   ),
                 )
@@ -126,6 +111,7 @@ class CalculationFunctions {
                         element.data().values.elementAt(i)['time'],
             'name': element.data().values.elementAt(i)['name'],
             'date': element.id,
+            'projectId': element.data().values.elementAt(i)['projectId'],
           };
           namesList.contains(element.data().values.elementAt(i)['name'])
               ? DoNothingAction()
@@ -134,6 +120,7 @@ class CalculationFunctions {
             'name': element.data().values.elementAt(i)['name'],
             'date': element.id,
             'time': element.data().values.elementAt(i)['time'],
+            'projectId': element.data().values.elementAt(i)['projectId'],
           }));
         }
       } else {}
@@ -147,11 +134,10 @@ class CalculationFunctions {
       returnMap['barChartData'] = tasksList;
     } else {
       returnMap['barChartData'] = [
-        Task(name: 'No Data', time: 1),
+        Task(name: 'No Data', time: 60),
       ];
     }
     if (splineList.isNotEmpty) {
-      //splineChartData.add(getDaysInBeteween(dateRange));
       namesList.forEach((name) {
         splineChartData
             .add(splineList.where((item) => item.name == name).toList());

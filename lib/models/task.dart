@@ -3,13 +3,15 @@ class Task {
   final int time;
   final String timeUI;
   final String date;
+  final String projectId;
 
-  Task({this.name, this.time, this.timeUI, this.date});
+  Task({this.name, this.time, this.timeUI, this.date, this.projectId});
   Task.fromMap(Map<String, dynamic> map)
       : name = map['name'],
         time = map['time'],
         timeUI = map['time'] == null ? null : minutesToHours(map['time']),
-        date = map['date'];
+        date = map['date'],
+        projectId = map['projectId'];
 
   static String minutesToHours(int _minutes) {
     if (_minutes < 60) {

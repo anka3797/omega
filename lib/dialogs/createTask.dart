@@ -16,7 +16,7 @@ class CreateTaskDialog extends StatefulWidget {
 }
 
 class _CreateTaskDialogState extends State<CreateTaskDialog> {
-  String selectedProject;
+  Project selectedProject = Project(id: '0', name: 'initial');
   List<DropdownMenuItem<String>> items = [];
   TextEditingController descriptionController = TextEditingController();
   int _minutes = 15;
@@ -36,7 +36,7 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
       padding: EdgeInsets.symmetric(horizontal: 25.0),
       child: SearchChoices.single(
         items: items,
-        value: selectedProject,
+        value: selectedProject.name,
         hint: Text(
           "Project",
           style: GoogleFonts.sourceSansPro(
@@ -69,7 +69,8 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
         ),
         onChanged: (value) {
           setState(() {
-            selectedProject = value;
+            selectedProject = widget.projectList
+                .firstWhere((element) => element.name == value);
           });
         },
         dialogBox: false,
@@ -219,7 +220,7 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
                 SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () {
-                    selectedProject == null ||
+                    selectedProject.id == '0' ||
                             descriptionController.text == '' ||
                             _minutes == 0
                         ? DoNothingAction()
@@ -239,7 +240,7 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
                           });
                   },
                   style: ElevatedButton.styleFrom(
-                    primary: selectedProject == null ||
+                    primary: selectedProject.id == '0' ||
                             descriptionController.text == '' ||
                             _minutes == 0
                         ? Style.Colors.textColor
@@ -274,8 +275,7 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
     }
   }
 
-  @override
-  void initState() {
+  void initDropDown() {
     for (int i = 0; i < widget.projectList.length; i++) {
       items.add(
         DropdownMenuItem(
@@ -289,6 +289,11 @@ class _CreateTaskDialogState extends State<CreateTaskDialog> {
         ),
       );
     }
+  }
+
+  @override
+  void initState() {
+    initDropDown();
     super.initState();
   }
 

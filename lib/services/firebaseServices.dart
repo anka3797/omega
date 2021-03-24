@@ -15,7 +15,7 @@ class FirebaseServices {
     return projectList;
   }
 
-  Future registerTask(String projectName, String color, int time, String date,
+  Future registerTask(Project projectModel, String color, int time, String date,
       String description) async {
     bool exists = false;
     int index = 1;
@@ -42,7 +42,8 @@ class FirebaseServices {
             .doc(date)
             .update({
           "$index": {
-            "name": projectName,
+            "name": projectModel.name,
+            "projectId": projectModel.id,
             "time": time,
             "description": description,
             "color": color,
@@ -56,7 +57,8 @@ class FirebaseServices {
             .doc(date)
             .set({
           "$index": {
-            "name": projectName,
+            "name": projectModel.name,
+            "projectId": projectModel.id,
             "time": time,
             "description": description,
             "color": color,
